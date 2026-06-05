@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INTERACTIVE RESPIRATORY MODEL</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #2a2d2e;
+      color: #2f6ec7;
+    }
+
+    header {
+  background: #1f4e79;
+  color: white;
+  padding: 14px 24px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.logo {
+  position: absolute;
+  right: 0px;
+  width: 200px;
+  height: auto;
+  background: #2f6ec700;
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.title-text {
+  text-align: center;
+}
+
+.title-text h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.title-text p {
+  margin: 6px 0 0;
+  font-size: 15px;
+}
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      font-size: 15px;
+    }
+
+    .container {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+      flex-wrap: wrap;
+    }
+
+    .model-card {
+      position: relative;
+      width: 700px;
+      max-width: 95vw;
+      height: 820px;
+      max-height: 78vh;
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .zoom-layer {
+      position: relative;
+      width: 100%;
+      transition: transform 0.6s ease, transform-origin 0.6s ease;
+      transform: scale(1);
+      transform-origin: 50% 50%;
+    }
+
+    .zoom-layer img {
+      width: 100%;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .hotspot {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid white;
+      background: #f91616;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.35);
+      transform: translate(-50%, -50%);
+      transition: 0.2s ease;
+      z-index: 3;
+    }
+
+    .hotspot:hover {
+      transform: translate(-50%, -50%) scale(1.25);
+      background: #dc2626;
+    }
+
+    .hotspot.active {
+      background: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35);
+    }
+
+    .label {
+      position: absolute;
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      transform: translateY(-50%);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .info-card {
+      width: 430px;
+      max-width: 95vw;
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      min-height: 560px;
+    }
+
+    .info-card h2 {
+      margin-top: 0;
+      color: #1f4e79;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+
+    .info-card p {
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .detail-box {
+      margin-top: 16px;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid #dbe3ea;
+    }
+
+    .detail-box h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+      color: #1f4e79;
+    }
+
+    .detail-box img {
+      width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .button-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #791f1f;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #163a5a;
+    }
+
+    .note {
+      margin-top: 14px;
+      padding: 12px;
+      background: #fff7ed;
+      border-left: 5px solid #f97316;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Hotspot positions */
+    #larynx { left: 50%; top: 10%; }
+    #larynxLabel { left: 52%; top: 8%; }
+
+    #thyroid { left: 47%; top: 20%; }
+    #thyroidLabel { left: 27%; top: 20%; }
+
+    #trachea { left: 53%; top: 43%; }
+    #tracheaLabel { left: 55%; top: 40%; }
+
+    #cartilage { left: 50%; top: 33%; }
+    #cartilageLabel { left: 33%; top: 30%; }
+
+    #carina { left: 52%; top: 53%; }
+    #carinaLabel { left: 54%; top: 55%; }
+
+    #rightBronchus { left: 45%; top: 60%; }
+    #rightBronchusLabel { left: 26%; top: 62%; }
+
+    #leftBronchus { left: 62%; top: 69%; }
+    #leftBronchusLabel { left: 64%; top: 67%; }
+
+    #bronchioles { left: 65%; top: 81%; }
+    #bronchiolesLabel { left: 66%; top: 84%; }
+
+    @media (max-width: 700px) {
+      .model-card { height: 620px; }
+      .label { font-size: 10px; padding: 4px 7px; }
+      header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+  <div class="header-content">
+    <img src="UTM-LOGO-FULL.png" alt="UTM Logo" class="logo">
+
+    <div class="title-text">
+      <h1>INTERACTIVE RESPIRATORY MODEL</h1>
+      <p>A Web-Based Interactive Model for learning the human respiratory system developed by GP2</p>
+    </div>
+  </div>
+</header>
+
+  <main class="container">
+    <section class="model-card">
+      <div class="zoom-layer" id="zoomLayer">
+        <img src="trachea_model.png" alt="Trachea and bronchial tree model">
+
+        <div class="hotspot" id="larynx" onclick="showInfo('larynx')"></div>
+        <div class="label" id="larynxLabel">Larynx</div>
+
+        <div class="hotspot" id="thyroid" onclick="showInfo('thyroid')"></div>
+        <div class="label" id="thyroidLabel">Thyroid Cartilage</div>
+
+        <div class="hotspot" id="trachea" onclick="showInfo('trachea')"></div>
+        <div class="label" id="tracheaLabel">Trachea</div>
+
+        <div class="hotspot" id="cartilage" onclick="showInfo('cartilage')"></div>
+        <div class="label" id="cartilageLabel">Cartilage rings</div>
+
+        <div class="hotspot" id="carina" onclick="showInfo('carina')"></div>
+        <div class="label" id="carinaLabel">Carina</div>
+
+        <div class="hotspot" id="rightBronchus" onclick="showInfo('rightBronchus')"></div>
+        <div class="label" id="rightBronchusLabel">Right Bronchus</div>
+
+        <div class="hotspot" id="leftBronchus" onclick="showInfo('leftBronchus')"></div>
+        <div class="label" id="leftBronchusLabel">Left Bronchus</div>
+
+        <div class="hotspot" id="bronchioles" onclick="showInfo('bronchioles')"></div>
+        <div class="label" id="bronchiolesLabel">Bronchioles</div>
+      </div>
+    </section>
+
+    <section class="info-card">
+      <span class="tag">The Respiratory System</span>
+      <h2 id="partTitle">Click a part</h2>
+      <p id="partText">Click on any red point to explore the trachea model. The view will zoom in to the selected part and show its related detail image and description.</p>
+
+      <div class="detail-box">
+        <h3>Detail Image</h3>
+        <img id="detailImage" src="detail_cartilage.png" alt="Detail image">
+      </div>
+
+      <div class="button-row">
+        <button onclick="zoomInMore()">Zoom in</button>
+        <button onclick="zoomOut()">Zoom out</button>
+        <button onclick="resetModel()">Reset</button>
+      </div>
+
+      <div class="note">
+        <strong>Note:</strong> This interactive model is designed to help you learn about the human respiratory system. Click on the hotspots to explore different parts of the trachea and bronchial tree. Use the zoom buttons to get a closer look or reset to return to the original view.
+    </section>
+  </main>
+
+  <script>
+    let currentPart = null;
+    let currentScale = 1;
+
+    const data = {
+      larynx: {
+        title: "Larynx",
+        text: "The LARYNX, also called the voice box, is located above the trachea. It helps us speak, breathe and protects the airway when we swallow.",
+        x: 50, y: 10, scale: 2.4,
+        image: "detail_larynx.png"
+      },
+      thyroid: {
+        title: "Thyroid Cartilage",
+        text: "The THYROID CARTILAGE is the largest cartilage of the Larynx. It forms the front wall of the voice box and helps protect the vocal cords. It is also known as the Adam’s apple.",
+        x: 47, y: 20, scale: 2.6,
+        image: "detail_thyroid.png"
+      },
+      trachea: {
+        title: "Trachea",
+        text: "The TRACHEA is also called the Windpipe. It is a tube that carries air from the Larynx to the Lungs. Its cartilage rings help keep the airway open for breathing.",
+        x: 50, y: 43, scale: 2.4,
+        image: "detail_trachea.png"
+      },
+      cartilage: {
+        title: "C-Shaped Cartilage Rings",
+        text: "The C-SHAPED CARTILAGE RINGS are strong but flexible rings found in the Trachea. They help keep the airway open so air can pass in and out of the lungs easily.",
+        x: 45, y: 37, scale: 3.0,
+        image: "detail_cartilage.png"
+      },
+      carina: {
+        title: "Carina",
+        text: "The CARINA is the point where the Trachea divides into the Right and Left Main Bronchi. It helps guide air from the trachea into both lungs.",
+        x: 50, y: 63, scale: 2.8,
+        image: "detail_carina.png"
+      },
+      rightBronchus: {
+        title: "Right Main Bronchus",
+        text: "The RIGHT MAIN BRONCHUS is the airway that carries air from the Trachea into the Right Lung. It branches into smaller airways to help air reach all parts of the lung.",
+        x: 39, y: 69, scale: 2.7,
+        image: "detail_right_bronchus.png"
+      },
+      leftBronchus: {
+        title: "Left Main Bronchus",
+        text: "The LEFT MAIN BRONCHUS is the airway that carries air from the Trachea into the Left Lung. It is usually longer and narrower because of the position of the heart.",
+        x: 62, y: 69, scale: 2.7,
+        image: "detail_left_bronchus.png"
+      },
+      bronchioles: {
+        title: "Smaller Bronchi / Bronchioles",
+        text: "BRONCHIOLES are small air tubes inside the Lungs. They carry air from the bronchi to the Alveoli, where oxygen enters the blood. They are important for getting air to all parts of the lungs.",
+        x: 65, y: 81, scale: 3.0,
+        image: "detail_bronchioles.png"
+      }
+    };
+
+    function applyZoom(part) {
+      const zoomLayer = document.getElementById("zoomLayer");
+      currentScale = data[part].scale;
+      zoomLayer.style.transformOrigin = `${data[part].x}% ${data[part].y}%`;
+      zoomLayer.style.transform = `scale(${currentScale})`;
+    }
+
+    function showInfo(part) {
+      currentPart = part;
+
+      document.getElementById("partTitle").innerText = data[part].title;
+      document.getElementById("partText").innerText = data[part].text;
+      document.getElementById("detailImage").src = data[part].image;
+      document.getElementById("detailImage").alt = data[part].title + " detail image";
+
+      document.querySelectorAll(".hotspot").forEach(point => point.classList.remove("active"));
+      document.getElementById(part).classList.add("active");
+
+      applyZoom(part);
+    }
+
+    function zoomInMore() {
+      if (!currentPart) return;
+      currentScale += 0.4;
+      if (currentScale > 4) currentScale = 4;
+      document.getElementById("zoomLayer").style.transform = `scale(${currentScale})`;
+    }
+
+    function zoomOut() {
+      if (!currentPart) return;
+      currentScale -= 0.4;
+      if (currentScale < 1) currentScale = 1;
+      document.getElementById("zoomLayer").style.transform = `scale(${currentScale})`;
+    }
+
+    function resetModel() {
+      currentPart = null;
+      currentScale = 1;
+
+      const zoomLayer = document.getElementById("zoomLayer");
+      zoomLayer.style.transformOrigin = "50% 50%";
+      zoomLayer.style.transform = "scale(1)";
+
+      document.getElementById("partTitle").innerText = "Click a part";
+      document.getElementById("partText").innerText = "Click any orange point on the trachea model. The picture will zoom into that part and show a related detail image.";
+      document.getElementById("detailImage").src = "detail_cartilage.png";
+
+      document.querySelectorAll(".hotspot").forEach(point => point.classList.remove("active"));
+    }
+  </script>
+</body>
+</html>
